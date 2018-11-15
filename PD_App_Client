@@ -1,0 +1,54 @@
+function denied(key){
+  // Make a call to the server
+  google.script.run.withSuccessHandler(function(ret){
+    //After email is sent, close dialog
+    app.closeDialog();
+    app.popups.emailSent = true;
+  }).denial(key);
+  
+}
+function committeeReview(key,stage,length){
+  var result;
+  var msg;
+  //creates a function to get return values and update the use
+  function onSuccess(result){
+    if(result === true){
+      msg = "Team Review Complete, Thanks Very Much";
+    }else{
+      msg = "Email not sent. Something went wrong";
+    }
+    app.popups.success.descendants.SuccessText.text = msg;
+    app.showPage(app.pages.TeamReviews);
+    app.popups.success.visible = true;
+  }
+  //calls the on passes result of committeReview to onSuccess if there are enough approvals.
+  if(length > 2){
+    result = google.script.run.withSuccessHandler(onSuccess).nextStage(key,stage,result);
+  }else{
+    app.popups.success.descendants.SuccessText.text = "Thanks for completing your part.";
+    app.showPage(app.pages.TeamReviews);
+    app.popups.success.visible = true;
+  }
+}
+
+function update(key,stage){
+  var result;
+  var msg;
+  //creates a function to get return values and update the use
+  function onSuccess(result){
+    if(result === true){
+      if(stage == "Form1SubmitButton"){
+        msg = "Thanks for your submission!";
+        app.closeDialog(app.pages.Application);
+      }else{
+        msg = "Thanks for completing your part.";
+      }
+      
+    }else{
+      msg = "Email not sent. Something went wrong";
+    }
+    app.popups.success.descendants.SuccessText.text = msg;
+    app.popups.success.visible = true;
+  }
+  result = google.script.run.withSuccessHandler(onSuccess).nextStage(key,stage,result);
+}
