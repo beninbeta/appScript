@@ -1,0 +1,31 @@
+function removeFromEvent(email,eventID){
+  /*@params int{key} is the key for the the record, String{eventID} the ID of the event to add people to.
+    Gets the record using the key and gets the eventID to remove the guest from and then removes that guest
+  */
+  var cal = CalendarApp.getCalendarById("calURL");
+  var record = app.models.session_registrants.getRecord(key);
+  cal.getEventById(eventID).removeGuest(record.email_address);
+}
+
+
+function addToEvent(key,eventID){
+  /*@params int{key} is the key for the the record, String{eventID} the ID of the event to add people to.
+    Gets the record using the key and gets the eventID to add the guest then adds the guest
+  */
+  var cal = CalendarApp.getCalendarById("calURL");
+  var record = app.models.session_registrants.getRecord(key);
+  cal.getEventById(eventID).addGuest(record.email_address);
+}
+
+function createEvent(key){
+  /**@params int{key} is the key for the created event in appmaker
+     This adds a new calendar event to the Calendar. Then gets the event ID and stores in App Maker so the event can be updated.
+  **/
+  var record = app.models.Offerings.getRecord(key);
+  var start = new Date(record.start);
+  var end  = new Date(record.end);
+  var options = {description: record.description, location: record.location};
+  var event = CalendarApp.getCalendarById("CalURL").createEvent(record.title,start,end,options);
+  record.event_id = event.getId();
+  app.saveRecords([record]);
+}
