@@ -1,0 +1,260 @@
+function sendEmail(email, header, body){
+  //Use the Apps Script MailApp
+  //@params Stirng{email}, String {Header}, String {body} email address, subject and body of email
+  MailApp.sendEmail({
+    to: email,
+    subject: header,
+    htmlBody: body,
+    noReply: true
+  });
+}
+
+function supervisor(key){
+  //@params int{key} is the key for the the record
+  //Get the record
+  var record = app.models.Application.getRecord(key); 
+  //Use the Apps Script MailApp
+  var approvalURL = 'urlforapproval';
+  var devFundURL = 'appURL';
+  var email = record.email;
+  var header = "New Employee Professional Development Application to Review";
+  var body = "Good Day " + record.supervisor + ",<br>" + record.first_name + " " + record.last_name +
+              ' has submitted for Professional Development Funding Assistance. Please reveiw the application: <a href="'+ approvalURL +'">Review Here</a>.<br>' +
+              record.supervisor + ', For additional details feel free to review the <a href="'+ devFundURL +'">Professional Development Funding Policy</a>.';
+  sendEmail(email, header, body);
+}
+
+function getEmails(){
+  //Function to get all of the records from the reviewer models and return the email address
+  var query = app.models.Reviewers.newQuery();
+  query.filters.email._contains = "snc.edu";
+  var allEmails = [];
+  var results = query.run();
+  allEmails =  results.map(function(email){
+      return email.email;
+  });
+  //return the list of emails
+  return allEmails;      
+}  
+
+function team(key){
+  //@params key{num} record key for this application
+  //Get the record using the key
+  var record = app.models.Application.getRecord(key); 
+  
+  var approvalURL = 'urlforapproval';
+  //Get the current list of reviewer emails
+  var reviewerEmails = getEmails(function(ret){
+  });
+  //send an email to each member to go and review the application.
+  for(var i in reviewerEmails){
+    var email = reviewerEmails[i];
+    var header = "New Employee Professional Development Application to Review";
+    var body = "Good Day Reviewers,<br>" + record.first_name + " " + record.last_name +
+              ' has submitted for Professional Development Funding Assistance and their supervisor has approved it. Please reveiw the application: <a href="'+ approvalURL +'">Review Here</a>.';
+    sendEmail(email,header,body);
+    
+  }
+}
+
+function hr(key, result){
+  //@params int{key} is the key for the the record
+  //Get the record
+  var record = app.models.Application.getRecord(key); 
+  //Use the Apps Script MailApp
+  var approvalURL = 'urlforapproval';
+  var email = record.hr_email;
+  var header = "New Employee Professional Development Application to Review";
+  var body = "Good Day Sue,<br>" + record.first_name + " " + record.last_name +
+             ' has submitted for Professional Development Funding Assistance. The Review Team or PC is finished. Please reveiw the application: <a href="'+ approvalURL +'">Review Here</a>.';
+  sendEmail(email, header, body);
+ 
+}
+function pc(key, result){
+  //@params int{key} is the key for the the record
+  //Get the record
+  var record = app.models.Application.getRecord(key); 
+  //Use the Apps Script MailApp
+  var approvalURL = 'urlforapproval';
+  var email = record.finance_email;
+  var header = "New Employee Professional Development Application to Review";
+  var body = "Good Day PC Committee,<br>" + record.first_name + " " + record.last_name +
+              ' has submitted for Professional Development Funding Assistance. The Review Team is finished. Please reveiw the application: <a href="'+ approvalURL +'">Review Here</a>.';
+  sendEmail(email, header, body);
+}
+function finalApproval(key){
+  //@params int{key} is the key for the the record
+  //Get the record
+  var record = app.models.Application.getRecord(key); 
+  //Use the Apps Script MailApp
+  var myApplications = 'https://script.google.com/a/macros/snc.edu/s/AKfycbxl10AjJYzmvJgHSZIiGD88b9t6ZSrQZco7esCbnBzdO0eaHFRoTG91emafL9T_god5/exec#MyApplications/';
+  var email = record.email;
+  var header = "New Employee Professional Development Application was Approved";
+  var body = "Good Day " + record.first_name + 
+      '<br> Your application Professional Development Funding Assistance has been approved. Do not forget that you will need to provide your final reflection when you finshed with your PD. You can see your applications here: <a href="'+ myApplications +'">Review Here</a>.';
+  sendEmail(email, header, body);
+  //Save the record
+  app.saveRecords([record]);
+}
+
+function reflection(key){
+  //@params int{key} is the key for the the record
+  //Get the record
+  var record = app.models.Application.getRecord(key); 
+  //Use the Apps Script MailApp
+  var myApplications = 'https://script.google.com/a/macros/snc.edu/s/AKfycbxl10AjJYzmvJgHSZIiGD88b9t6ZSrQZco7esCbnBzdO0eaHFRoTG91emafL9T_god5/exec#Completed/';
+  var email = record.hr_email;
+  var header = "Professional Development Application Reflection was completed";
+  var body = "Good Day,<br>" + record.first_name + 
+      ' has completed the reflection You can find it here: <a href="'+ myApplications +'">Review Here</a>.';
+  sendEmail(email, header, body);
+  //Save the record
+  app.saveRecords([record]);
+}
+
+function fundsReleased(key){
+  var record = app.models.Application.getRecord(key);
+  var email = record.email;
+  var header = "Professional Development Funds Released";
+  var body = "Good Day,\n\nThe funding for " + record.opportunity_name + 
+      " has been released. It should arrive in the account specified by your supervisor in 7 -10 business days.\n\nThanks for applying and have a fanstastic day!";
+  sendEmail(email,header,body);
+  body = "Good Day,\n\nThe funding for " + record.opportunity_name + 
+      " has been released. It should arrive in the account you specified in 7 -10 business days.\n\nThanks for applying and have a fanstastic day!";
+  email = record.supervisor_email;
+  sendEmail(email,header,body);
+}
+
+function nextStage(key, stage, result){
+  //@params int{key} is the key for the the record
+  //Get the record using the key
+  var record = app.models.Application.getRecord(key);
+  //check the stage to see who should be emailed next, set paramaters, and return a message to the user
+  switch(stage) {
+    case "funds_released":
+      record.funds_released = true;
+      record.final_approval_date = new Date();
+      record.Stage = 7;
+      result = true;
+      fundsReleased(key);
+      app.saveRecords([record]);
+      break;
+    case "reflection":
+      record.reflection_complete = true;
+      record.Stage = 6;
+      app.saveRecords([record]);
+      result = true;
+      reflection(key);
+      break;
+    case "PCApproval":
+      record.pc_approval= "Approved";
+      record.final_approval = "Approved";
+      record.pc_approval_date = new Date();
+      record.Stage = 5;
+      app.saveRecords([record]);
+      result = true;
+      finalApproval(key);
+      break;
+    case "TeamReviewCheck":
+      record.committee_approved = true;
+      record.Stage = 3;
+      app.saveRecords([record]);
+      result = true;
+      hr(key);
+      break;
+    case "HrApproved":
+      record.hr_approval = "Approved";
+      record.hr_approval_date = new Date();
+      record.Stage = 4;
+      app.saveRecords([record]);
+      result = true;
+      pc(key);
+      break;
+    case "SupervisorApproved":
+      record.supervisor_approval = "Approved";
+      record.supervisor_approval_date = new Date();
+      record.Stage = 2;
+      app.saveRecords([record]);
+      result = true;
+      team(key);
+      break;
+    case "Form1SubmitButton":
+      supervisor(key);
+      result = true;
+      break;
+    default:
+      result = false;
+      console.log("Nothing Happened");
+  } 
+  return result;
+}
+/*sends a denial email if any part of the process creates a denial.
+  @params int{key} is the key for the the record
+*/
+function denial(key){
+  //Get the record
+  var record = app.models.Application.getRecord(key); 
+  //Use the Apps Script MailApp
+  var myApplications = 'urlforapproval';
+  var email = record.email;
+  var header = "New Employee Professional Development Application was Denied";
+  var body = "Good Day " + record.first_name + 
+      '<br> Your application Professional Development Funding Assistance has been denied. Please visit your application and check the notes section to see why it was denied here: <a href="'+ myApplications +'">Review Here</a>.';
+  sendEmail(email, header, body);
+ 
+}
+
+function reminder(){
+  var today = new Date();
+  var records = [];
+  var myApplications = 'urlforapproval';
+  var query = app.models.Application.newQuery();
+  query.filters.end_date._lessThanOrEquals = today;
+  query.filters.reflection_complete._equals = true;
+  records = query.run();
+  var emails = records.map(function(email){
+    return email.email;
+  });
+  //console.log(emails);
+  //for(var i in emails){
+    //var email = emails[i];
+    //var header = "Your Professional Development Application, Don't Forget to Add Your Reflection";
+    //var body = 'Good Day,<br>Your application Professional Development Funding Assistance Reflection Needs to be comleted. Please hear here to write the review. Then click the send (Paper Airplane) icon to get allow for the funds to be released: <a href="'+ myApplications +'">My Applications</a>.';
+    //sendEmail(email,header,body);
+  //}
+}
+/*
+ * Checks to see if any triggers exist. 
+ * @return {Boolean}
+ */
+function hasTriggers() {
+  return(ScriptApp.getProjectTriggers().length > 0);
+}
+
+/*
+ * Deletes any previous triggers if they exist.
+ */
+function deletePreviousTriggers() {
+  // Deletes all triggers in the current project.
+  var triggers = ScriptApp.getProjectTriggers();
+  
+  for (var i = 0; i < triggers.length; i++) {
+    ScriptApp.deleteTrigger(triggers[i]);
+  } 
+}
+
+
+/*
+ * create Time Drive trigger - Creates a trigger to fire at a specified frequency.
+ */
+function startReminders() {
+  // Delete any existing triggers to avoid trigger proliferation.
+  deletePreviousTriggers();
+  
+  //Send the notifications every day at 7am
+  ScriptApp.newTrigger('reminder')
+   .timeBased()
+   .atHour(7)
+   .everyDays(1) 
+   .create(); 
+}
