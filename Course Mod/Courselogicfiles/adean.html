@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <!-- The CSS package above applies Google styling to buttons and other elements. -->
+
+    <style>
+        .branding-below {
+            bottom: 56px;
+            top: 0;
+        }
+        
+        .branding-text {
+            left: 7px;
+            position: relative;
+            top: 3px;
+        }
+        
+        .col-contain {
+            overflow: hidden;
+        }
+        
+        .col-one {
+            float: left;
+        }
+        
+        .logo {
+            vertical-align: middle;
+        }
+        
+        .radio-spacer {
+            height: 20px;
+        }
+        
+        .width-100 {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar branding-below">
+        <form>
+            <div class="block col-contain">
+                <div class="col-one">
+                    <b>Associate Dean Approval/SSBE</b>
+                    <div>
+                        <form>
+                            First name:<br>
+                            <input type="text" name="firstname" id="adeanfirst"><br> Last name:<br>
+                            <input type="text" name="lastname" id="adeanlast">
+                        </form>
+                    </div>
+                    <div>
+
+                    </div>
+                    <div>
+                        <br>
+                        <input type="radio" name="approval" id="radio-yes" value="Yes" />
+                        <label for="radio-origin-yes">I approve this course</label>
+                    </div>
+                    <div>
+
+                        <input type="radio" name="approval" id="radio-no" value="No" />
+                        <label for="radio-origin-no">I do not approve this course.</label>
+                    </div>
+                    <br> Submitter Email Person who Submited the Course:<br>
+                    <input type="text" name="submitterEmail" id="submitterEmail" />
+                </div>
+            </div>
+        </form>
+
+        <div>
+            <hr> Please choose from the following options:
+        </div>
+        <div>
+            <input type="checkbox" name="newCourse" id="newCourse" value="Yes">
+            <label for="checkbox-origin-new">This is a new course</label>
+        </div>
+        <div>
+            <input type="checkbox" name="core" id="core" value="Yes">
+            <label for="checkbox-origin-core">This is a core and/or writing intensive course</label>
+        </div>
+
+        <div class="block" id="button-bar">
+            <br>
+            <button class="blue" id="save">Save</button>
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">
+        </script>
+
+        <script>
+            $(function() {
+                $('#save').click(aDean);
+            });
+
+            function aDean() {
+
+                this.disabled = true;
+                var nc;
+                var core;
+                $('#newCourse').prop('checked') ? nc = "Yes" : nc = "No";
+                $('#core').prop('checked') ? core = "Yes" : core = "No";
+                $('#error').remove();
+                var approval = $('input[name=approval]:checked').val();
+                var fname = $('#adeanfirst').val();
+                var lname = $("#adeanlast").val();
+                var submitter = $("#submitterEmail").val();
+                google.script.run.aDean(fname, lname, nc, core, approval, submitter);
+
+            }
+        </script>
+</body>
+
+</html>
